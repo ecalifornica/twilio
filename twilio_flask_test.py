@@ -35,6 +35,13 @@ def twilio():
     if flask.request.method == 'POST':
         logger.debug(flask.request.form)
         posted_data = flask.request.form
+        if 'make_call' in posted_data.keys():
+            call = client.calls.create(url="http://blametommy.com:5050/callxml/",
+                    to="+14158598214",
+                    from_=credentials.from_number)
+            logger.debug(call.sid)
+            return flask.redirect('/twilio/')
+
         if 'From' in posted_data.keys():
             number = posted_data['From']
             message = posted_data['Body'].lower()
@@ -82,21 +89,68 @@ def twilio():
 @app.route('/callxml/', methods=['GET', 'POST'])
 def barf():
     resp = twiml.Response()
-    resp.say("Please rechord a NOUN.")
-    resp.record(maxLength="5", action="/handle-recording/")
+    resp.say('please rechord words for these prompts:')
+    '''
+    for word in game.word_list:
+        resp.say(word)
+        resp.record(maxLength="2", action="/handle-recording/")
+    '''
+    resp.say('noun')
+    resp.record(maxLength="2", action="/handle-recording/")
+    resp.say('verb')
+    resp.record(maxLength="2", action="/handle-recording/")
+        
+    #resp.say("Please rechord a NOUN.")
+    #resp.say("Hi Sarah, this is a test of the computer swearing system. Fuck. Shit. Barf. Cocksucker. Motherfucker. Record your own swearword after the beep")
+    #resp.record(maxLength="2", action="/handle-recording/")
+    resp.say('thank you. I will text you the finished game U R L')
     return str(resp)
 
 @app.route('/handle-recording/', methods=['GET', 'POST'])
 def handle_recording():
-    print('made it this far')
+    logger.debug(flask.request.form)
     recording_url = flask.request.values.get("RecordingUrl", None)
+    #game.recording_urls.save({'dunno': recording_url})
     resp = twiml.Response()
-    resp.say("Thank you for recording a noun.")
+    #resp.say("You sounded like:")
     resp.play(recording_url)
-    resp.say("Have a good night friend, I hope you sleep well.")
+    logger.debug(recording_url)
+    resp.redirect(url="/callxml/")
+    #resp.say("Tee-hee, you're so naughty.")
+    print str(resp)
     return str(resp)
 
+class madLibGame(object):
+    def __init__(self):
+        import time
+        self.game_id = int(time.time())
+        print self.game_id
+        self.game_url = None
+        #self.word_list = [{'noun': None}, {'verb': None}, {'adjective', None}, {'noun': None}]
+        self.word_list = ['noun', 'verb', 'adjective', 'ice cream flavor', 'animal']
+        self.datastore = dbclient['{}'.format(self.game_id)]
+        self.recording_urls = self.datastore['recording_urls']
+        #self.recording_urls.remove({'test': 'value'})
+        #for x in self.datastore.find():
+        #    print x
+        print self.datastore.collection_names()
+        self.player_numbers = db.phone_numbers
+        print db.collection_names()
+        print 'object initialized'
 
+    def start_new_game(self):
+        pass
+
+
+game = madLibGame()
+
+@app.route('/object_test/', methods=['GET', 'POST'])
+def testing():
+    #print game.player_numbers
+    for player in game.player_numbers.find():
+        print('{}: {}'.format(player['name'], player['number']))
+    return 'hello test'
+    
 
 @app.route('/call/', methods=['GET', 'POST'])
 def call():
