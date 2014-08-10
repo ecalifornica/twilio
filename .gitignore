@@ -2,3 +2,4 @@
 credentials.*
 *.log
 cruft
+venv
