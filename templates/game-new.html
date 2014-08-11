@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+{% block body %}
+<div class="container">
+  <form method="post" role='form' action='/games'>
+    <div class="form-group">
+      <label for="storyText">Story Text:</label>
+      <textarea name="storyText" rows="5" class='form-control'></textarea>
+    </div>
+
+    <ul id='participants' class='list-unstyled'>
+      <li class='first'>
+        <div class="form-group">
+          <label for='participant-name'>Name:</label>
+          <input type="text" id='participant-name' class="form-control" />
+        </div>
+        <div class="form-group">
+          <label for='participant-phone'>Phone:</label>
+          <input type="text" id='participant-phone' class="form-control" />
+        </div>
+      </li>
+    </ul>
+
+    <button type="button" class='btn' id="add-participant">Add Person</button>
+
+    <button type="button" class='btn' id="save">Save</button>
+  </form>
+</div>
+
+<script>
+  window.onload = function() {
+    var b = document.getElementById('add-participant');
+    b.addEventListener('click', function() {
+      var newLi = document.querySelectorAll('li.first')[0].cloneNode(true);
+      newLi.classList.remove('first');
+      document.getElementById('participants').appendChild(newLi);
+    });
+
+    var save = document.getElementById('save');
+    save.addEventListener('click', function() {
+      var forEach = Array.prototype.forEach;
+      var form = document.getElementsByTagName('form')[0];
+      forEach.call(document.getElementsByTagName('li'), function(li) {
+        var name = li.querySelectorAll('#participant-name')[0].value;
+        var number = li.querySelectorAll('#participant-phone')[0].value;
+        if (name && number) {
+          form.appendChild(createHidden('participants', [name, number].join(':')));
+          function createHidden(name, val) {
+            var input = document.createElement('input')
+            input.type = 'hidden';
+            input.name = name;
+            input.value = val;
+            return input;
+          }
+        }
+
+      });
+      form.submit();
+    });
+  };
+</script>
+
+
+{% endblock %}
