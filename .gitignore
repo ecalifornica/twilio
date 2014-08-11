@@ -3,3 +3,4 @@ credentials.*
 *.log
 cruft
 venv
+#.pyc
